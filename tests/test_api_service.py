@@ -3,7 +3,7 @@ import requests
 import requests_mock
 from typing import List
 
-from vacancy_db_manager.api_service import get_employers, BASE_URL
+from vacancy_db_manager.api_service import get_employers, BASE_URL_EMPLOYERS
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ def test_get_employers_success(requests_mock, mock_employers_data):
         "locale": "RU"
     }
 
-    employers_url = BASE_URL
+    employers_url = BASE_URL_EMPLOYERS
     requests_mock.get(employers_url, json={"items": mock_employers_data}, status_code=200)
 
     employers = get_employers()
@@ -59,7 +59,7 @@ def test_get_employers_failure(requests_mock):
     Args:
         requests_mock (Mocker): The requests-mock fixture for mocking HTTP requests.
     """
-    employers_url = BASE_URL
+    employers_url = BASE_URL_EMPLOYERS
     requests_mock.get(employers_url, status_code=500)
 
     employers = get_employers()
