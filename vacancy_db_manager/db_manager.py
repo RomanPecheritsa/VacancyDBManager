@@ -48,6 +48,11 @@ class DBManager:
             raise
 
     def get_all_vacancies(self):
+        """
+        Retrieves a list of all vacancies with the company name, vacancy name, salary, and vacancy URL.
+        Returns:
+            PrettyTable: A formatted table containing the company name, vacancy name, salary, and URL.
+        """
         query = """
         SELECT e.employer_name, v.name, v.salary, v.url
         FROM employers e
@@ -69,3 +74,59 @@ class DBManager:
             logger.error(f"Ошибка при получении вакансий: {e}")
             raise
 
+    def get_avg_salary(self):
+        """
+       Retrieves the average salary of all vacancies from the database.
+       Returns:
+           PrettyTable: A formatted table containing the average salary. The table has one column
+       """
+        query = """
+        SELECT ROUND(AVG(v.salary)) as avg_salary
+        FROM vacancies v
+        """
+        try:
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+
+            table = PrettyTable()
+            table.field_names = ["Средняя зарплата"]
+
+            for row in result:
+                table.add_row(row)
+
+            return table
+        except Exception as e:
+            logger.error(f"Ошибка при получении средней зарплаты: {e}")
+            raise
+
+    def get_vacancies_with_higher_salary(self):
+        """
+        Retrieves a list of all vacancies with a salary higher than the average salary of all vacancies.
+        Returns:
+            PrettyTable: A formatted table containing the company name, vacancy name, salary, and URL.
+        """
+        query = """
+        WITH avg_salary AS (
+            SELECT AVG(salary) AS average_salary
+            FROM vacancies
+        )
+        SELECT e.employer_name, v.name, v.salary, v.url
+        FROM vacancies v
+        JOIN employers e ON v.employer_id = e.employer_id
+        CROSS JOIN avg_salary
+        WHERE v.salary > avg_salary.average_salary;
+        """
+        try:
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+
+            table = PrettyTable()
+            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на ваканисю"]
+
+            for row in result:
+                table.add_row(row)
+
+            return table
+        except Exception as e:
+            logger.error(f"Ошибка при получении вакансий: {e}")
+            raise
