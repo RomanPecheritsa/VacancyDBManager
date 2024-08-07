@@ -38,11 +38,11 @@ def main_user_menu() -> None:
         if user_choice == '1':
             menu_get_all_emp_count_vac()
         elif user_choice == '2':
-            get_all_vac()
+            menu_get_all_vac()
         elif user_choice == '3':
-            pass
+            menu_get_avg_salary()
         elif user_choice == '4':
-            pass
+            menu_get_vac_higher_avg()
         elif user_choice == '5':
             pass
         elif user_choice == '6':
@@ -65,7 +65,7 @@ def menu_get_all_emp_count_vac() -> None:
             print("\nНет данных для отображения.")
 
 
-def get_all_vac() -> None:
+def menu_get_all_vac() -> None:
     """
     A function for interacting with the user when selecting
         'Получить список всех вакансий с указанием компании, вакансии, зарплаты и ссылки на вакансию'
@@ -77,3 +77,28 @@ def get_all_vac() -> None:
         else:
             print("\nНет данных для отображения.")
 
+
+def menu_get_avg_salary() -> None:
+    """
+    A function for interacting with the user when selecting
+        'Получить среднюю зарплату по вакансиям'
+    """
+    with DBManager(DATABASE_CONFIG) as db_manager:
+        avg_salary = db_manager.get_avg_salary()
+        if avg_salary:
+            print(avg_salary)
+        else:
+            print("\nНет данных для отображения.")
+
+
+def menu_get_vac_higher_avg():
+    """
+    A function for interacting with the user when selecting
+        'Получить список всех вакансий, у которых зарплата выше средней по всем вакансиям'
+    """
+    with DBManager(DATABASE_CONFIG) as db_manager:
+        vac_higher = db_manager.get_vacancies_with_higher_salary()
+        if vac_higher:
+            print(vac_higher)
+        else:
+            print("\nНет данных для отображения.")
