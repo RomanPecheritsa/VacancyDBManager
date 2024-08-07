@@ -10,7 +10,7 @@ class Employer(BaseModel):
         employer_name (str): The name of the employer.
         url (str): The URL link to the employer's profile or webpage.
     """
-    employer_id: str
+    employer_id: int
     employer_name: str
     url: str
 
@@ -26,8 +26,8 @@ class Vacancy(BaseModel):
         salary (Optional[int]): The offered salary for the vacancy. Defaults to None.
         url (str): The URL link to the vacancy's detailed webpage.
     """
-    vacancy_id: str
-    employer_id: str
+    vacancy_id: int
+    employer_id: int
     name: str
     description: Optional[str] = None
     salary: Optional[int] = None
