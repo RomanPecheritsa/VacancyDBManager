@@ -38,7 +38,7 @@ def main_user_menu() -> None:
         if user_choice == '1':
             menu_get_all_emp_count_vac()
         elif user_choice == '2':
-            pass
+            get_all_vac()
         elif user_choice == '3':
             pass
         elif user_choice == '4':
@@ -61,6 +61,19 @@ def menu_get_all_emp_count_vac() -> None:
         companies_vacancies_table = db_manager.get_companies_and_vacancies_count()
         if companies_vacancies_table:
             print(companies_vacancies_table)
+        else:
+            print("\nНет данных для отображения.")
+
+
+def get_all_vac() -> None:
+    """
+    A function for interacting with the user when selecting
+        'Получить список всех вакансий с указанием компании, вакансии, зарплаты и ссылки на вакансию'
+    """
+    with DBManager(DATABASE_CONFIG) as db_manager:
+        vacancies_table = db_manager.get_all_vacancies()
+        if vacancies_table:
+            print(vacancies_table)
         else:
             print("\nНет данных для отображения.")
 
