@@ -37,7 +37,7 @@ class DBManager:
             result = self.cursor.fetchall()
 
             table = PrettyTable()
-            table.field_names = ["company", "vacancies count"]
+            table.field_names = ["Компания", "Количество вакансий"]
 
             for row in result:
                 table.add_row(row)
@@ -46,3 +46,26 @@ class DBManager:
         except Exception as e:
             logger.error(f"Ошибка при поиске компаний и подсчете вакансий: {e}")
             raise
+
+    def get_all_vacancies(self):
+        query = """
+        SELECT e.employer_name, v.name, v.salary, v.url
+        FROM employers e
+        LEFT JOIN vacancies v ON e.employer_id = v.employer_id
+        ORDER BY v.salary DESC;
+        """
+        try:
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+
+            table = PrettyTable()
+            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на ваканисю"]
+
+            for row in result:
+                table.add_row(row)
+
+            return table
+        except Exception as e:
+            logger.error(f"Ошибка при получении вакансий: {e}")
+            raise
+
