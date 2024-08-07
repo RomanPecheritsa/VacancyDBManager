@@ -12,6 +12,7 @@ psycopg2 = "^2.9.9"
 requests-mock = "^1.12.1"
 jmespath = "^1.0.1"
 python-dotenv = "^1.0.1"
+prettytable = "^3.10.2"
 
 
 [tool.poetry.group.dev.dependencies]
