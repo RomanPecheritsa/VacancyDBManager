@@ -44,7 +44,7 @@ def main_user_menu() -> None:
         elif user_choice == '4':
             menu_get_vac_higher_avg()
         elif user_choice == '5':
-            pass
+            menu_get_vac_keyword()
         elif user_choice == '6':
             print("\nВыход из программы\n")
             break
@@ -91,7 +91,7 @@ def menu_get_avg_salary() -> None:
             print("\nНет данных для отображения.")
 
 
-def menu_get_vac_higher_avg():
+def menu_get_vac_higher_avg() -> None:
     """
     A function for interacting with the user when selecting
         'Получить список всех вакансий, у которых зарплата выше средней по всем вакансиям'
@@ -100,5 +100,19 @@ def menu_get_vac_higher_avg():
         vac_higher = db_manager.get_vacancies_with_higher_salary()
         if vac_higher:
             print(vac_higher)
+        else:
+            print("\nНет данных для отображения.")
+
+
+def menu_get_vac_keyword() -> None:
+    """
+    A function for interacting with the user when selecting
+        'Получить список всех вакансий, в названии которых содержатся переданные в метод слова'
+    """
+    user_input = input('\nВведите слово для поиска\n')
+    with DBManager(DATABASE_CONFIG) as db_manager:
+        vac_keyword = db_manager.get_vacancies_with_keyword(user_input)
+        if vac_keyword:
+            print(vac_keyword)
         else:
             print("\nНет данных для отображения.")
