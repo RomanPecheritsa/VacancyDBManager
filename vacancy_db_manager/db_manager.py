@@ -19,7 +19,7 @@ class DBManager:
         self.cursor.close()
         self.conn.close()
 
-    def get_companies_and_vacancies_count(self):
+    def get_companies_and_vacancies_count(self) -> PrettyTable:
         """
         Gets a list of all companies and the number of vacancies each company has.
         Returns:
@@ -47,7 +47,7 @@ class DBManager:
             logger.error(f"Ошибка при поиске компаний и подсчете вакансий: {e}")
             raise
 
-    def get_all_vacancies(self):
+    def get_all_vacancies(self) -> PrettyTable:
         """
         Retrieves a list of all vacancies with the company name, vacancy name, salary, and vacancy URL.
         Returns:
@@ -74,7 +74,7 @@ class DBManager:
             logger.error(f"Ошибка при получении вакансий: {e}")
             raise
 
-    def get_avg_salary(self):
+    def get_avg_salary(self) -> PrettyTable:
         """
        Retrieves the average salary of all vacancies from the database.
        Returns:
@@ -99,7 +99,7 @@ class DBManager:
             logger.error(f"Ошибка при получении средней зарплаты: {e}")
             raise
 
-    def get_vacancies_with_higher_salary(self):
+    def get_vacancies_with_higher_salary(self) -> PrettyTable:
         """
         Retrieves a list of all vacancies with a salary higher than the average salary of all vacancies.
         Returns:
@@ -129,4 +129,33 @@ class DBManager:
             return table
         except Exception as e:
             logger.error(f"Ошибка при получении вакансий: {e}")
+            raise
+
+    def get_vacancies_with_keyword(self, keyword: str) -> PrettyTable:
+        """
+        Retrieves a list of all vacancies where the job title contains the specified keyword.
+        Returns:
+            PrettyTable: A formatted table containing the job title, salary, and URL of each matching
+                         vacancy.
+        """
+        query = """
+        SELECT name, salary, url
+        FROM vacancies
+        WHERE description ILIKE %s OR name ILIKE %s
+        """
+        params = (f'%{keyword}%', f'%{keyword}%')
+
+        try:
+            self.cursor.execute(query, params)
+            result = self.cursor.fetchall()
+
+            table = PrettyTable()
+            table.field_names = ["Название вакансии", "Зарплата", "Ссылка"]
+
+            for row in result:
+                table.add_row(row)
+
+            return table
+        except Exception as e:
+            logger.error(f"Ошибка при получении вакансий с ключевым словом: {e}")
             raise
