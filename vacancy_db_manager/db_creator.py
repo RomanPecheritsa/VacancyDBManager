@@ -39,11 +39,9 @@ def create_database(dbname: str) -> None:
     cursor = conn.cursor()
 
     try:
-        # Drop the database if it exists
         cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(dbname)))
         print(f"База данных '{dbname}' удалена")
 
-        # Create a new database
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
         print(f"База данных '{dbname}' успешно создана")
     except Exception as e:
