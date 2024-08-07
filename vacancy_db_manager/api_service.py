@@ -5,9 +5,7 @@ from typing import List
 
 BASE_URL_EMPLOYERS = "https://api.hh.ru/employers"
 BASE_URL_VACANCIES = "https://api.hh.ru/vacancies"
-EMPLOYERS_ID = [9694561, 4219, 5919632, 5667343, 9301808,
-                6062708, 4306, 1740, 78638, 3529,
-                2748, 1057, 2180, 87021, 15478, 84585, 3776]
+EMPLOYERS_ID = [1429999, 1035394, 3961360, 10772647, 84585, 5600787, 2180, 12550, 3529, 9498120]
 
 
 def get_employers() -> List[dict]:
@@ -36,34 +34,39 @@ def get_employers() -> List[dict]:
     return employers_data
 
 
-def get_vacancies(company_id: str) -> List[dict]:
+def get_vacancies(company_id: int) -> List[dict]:
     """
     Fetches vacancy details for a specific employer ID.
     This function makes a GET request to fetch vacancies for a given employer ID, extracts specific fields
     from each vacancy using a JMESPath query, and creates instances of the Vacancy model. These instances
     are collected into a list and returned.
     Args:
-        company_id (str): The ID of the employer whose vacancies are to be fetched.
+        company_id (int): The ID of the employer whose vacancies are to be fetched.
     Returns:
         List[Vacancy]: A list of Vacancy objects containing details about each vacancy.
     """
     vacancies_data = []
-    url = f'{BASE_URL_VACANCIES}?employer_id={company_id}&per_page=50&professional_role=96'
+    url = f'{BASE_URL_VACANCIES}?employer_id={company_id}&per_page=100&only_with_salary=true'
     response = requests.get(url=url)
     if response.status_code == 200:
         vacancies = response.json()['items']
         for vac in vacancies:
+            salary_from = vac.get('salary', {}).get('from')
+            salary_to = vac.get('salary', {}).get('to')
+            salary = salary_from if salary_from is not None else salary_to
+
             query = """
             {
                 vacancy_id: id,
                 employer_id: employer.id,
                 name: name,
                 description: snippet.requirement || '' && snippet.responsibility || '',
-                salary: salary.from,
+                salary: salary,
                 url: alternate_url
             }
             """
             parsed_data = jmespath.search(query, vac)
+            parsed_data['salary'] = salary
             vacancies_data.append(parsed_data)
     return vacancies_data
 
