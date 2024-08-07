@@ -1,19 +1,36 @@
 import psycopg2
-from psycopg2 import sql
 from prettytable import PrettyTable
+from typing import Dict, Optional
 from config import logger
 
 
 class DBManager:
-    def __init__(self, config):
+    def __init__(self, config: Dict[str, str]) -> None:
+        """
+        Initializes the DBManager with the provided configuration.
+        Args:
+            config (Dict[str, str]): Database configuration parameters.
+        """
         self.config = config
 
-    def __enter__(self):
+    def __enter__(self) -> 'DBManager':
+        """
+        Opens a connection to the database and returns the DBManager instance.
+        Returns:
+            DBManager: The instance of the DBManager.
+        """
         self.conn = psycopg2.connect(**self.config)
         self.cursor = self.conn.cursor()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[type], exc_val: Optional[Exception], exc_tb: Optional[Exception]) -> None:
+        """
+        Closes the database connection and cursor.
+        Args:
+            exc_type (Optional[type]): The exception type.
+            exc_val (Optional[Exception]): The exception value.
+            exc_tb (Optional[Exception]): The traceback of the exception.
+        """
         if exc_type is not None:
             logger.error(f'Произошла ошибка {exc_type} {exc_val}')
         self.cursor.close()
@@ -21,7 +38,7 @@ class DBManager:
 
     def get_companies_and_vacancies_count(self) -> PrettyTable:
         """
-        Gets a list of all companies and the number of vacancies each company has.
+        Retrieves a list of all companies and the number of vacancies each company has.
         Returns:
             PrettyTable: A formatted table containing the company name and the count of vacancies.
         """
@@ -64,7 +81,7 @@ class DBManager:
             result = self.cursor.fetchall()
 
             table = PrettyTable()
-            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на ваканисю"]
+            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на вакансию"]
 
             for row in result:
                 table.add_row(row)
@@ -76,10 +93,10 @@ class DBManager:
 
     def get_avg_salary(self) -> PrettyTable:
         """
-       Retrieves the average salary of all vacancies from the database.
-       Returns:
-           PrettyTable: A formatted table containing the average salary. The table has one column
-       """
+        Retrieves the average salary of all vacancies from the database.
+        Returns:
+            PrettyTable: A formatted table containing the average salary. The table has one column.
+        """
         query = """
         SELECT ROUND(AVG(v.salary)) as avg_salary
         FROM vacancies v
@@ -121,19 +138,21 @@ class DBManager:
             result = self.cursor.fetchall()
 
             table = PrettyTable()
-            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на ваканисю"]
+            table.field_names = ["Компания", "Вакансия", "Зарплата", "Ссылка на вакансию"]
 
             for row in result:
                 table.add_row(row)
 
             return table
         except Exception as e:
-            logger.error(f"Ошибка при получении вакансий: {e}")
+            logger.error(f"Ошибка при получении вакансий с зарплатой выше средней: {e}")
             raise
 
     def get_vacancies_with_keyword(self, keyword: str) -> PrettyTable:
         """
-        Retrieves a list of all vacancies where the job title contains the specified keyword.
+        Retrieves a list of all vacancies where the job title or description contains the specified keyword.
+        Args:
+            keyword (str): The keyword to search for in the job titles and descriptions.
         Returns:
             PrettyTable: A formatted table containing the job title, salary, and URL of each matching
                          vacancy.
@@ -141,7 +160,7 @@ class DBManager:
         query = """
         SELECT name, salary, url
         FROM vacancies
-        WHERE description ILIKE %s OR name ILIKE %s
+        WHERE name ILIKE %s OR description ILIKE %s
         """
         params = (f'%{keyword}%', f'%{keyword}%')
 
@@ -157,5 +176,5 @@ class DBManager:
 
             return table
         except Exception as e:
-            logger.error(f"Ошибка при получении вакансий с ключевым словом: {e}")
+            logger.error(f"Ошибка при получении вакансий с ключевым словом '{keyword}': {e}")
             raise
