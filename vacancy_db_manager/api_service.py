@@ -2,8 +2,6 @@ import requests
 import jmespath
 from typing import List
 
-from vacancy_db_manager.models import Employer, Vacancy
-
 
 BASE_URL_EMPLOYERS = "https://api.hh.ru/employers"
 BASE_URL_VACANCIES = "https://api.hh.ru/vacancies"
@@ -12,7 +10,7 @@ EMPLOYERS_ID = [9694561, 4219, 5919632, 5667343, 9301808,
                 2748, 1057, 2180, 87021, 15478, 84585, 3776]
 
 
-def get_employers() -> List[Employer]:
+def get_employers() -> List[dict]:
     """
     Fetches employer details from a list of employer IDs.
     This function iterates through a predefined list of employer IDs, makes a GET request to fetch details
@@ -34,11 +32,11 @@ def get_employers() -> List[Employer]:
             }
             """
             parsed_data = jmespath.search(query, response.json())
-            employers_data.append(Employer(**parsed_data))
+            employers_data.append(parsed_data)
     return employers_data
 
 
-def get_vacancies(company_id: str) -> List[Vacancy]:
+def get_vacancies(company_id: str) -> List[dict]:
     """
     Fetches vacancy details for a specific employer ID.
     This function makes a GET request to fetch vacancies for a given employer ID, extracts specific fields
@@ -66,11 +64,11 @@ def get_vacancies(company_id: str) -> List[Vacancy]:
             }
             """
             parsed_data = jmespath.search(query, vac)
-            vacancies_data.append(Vacancy(**parsed_data))
+            vacancies_data.append(parsed_data)
     return vacancies_data
 
 
-def get_all_vacancies() -> List[Vacancy]:
+def get_all_vacancies() -> List[dict]:
     """
     Fetches all vacancies for a predefined list of employer IDs.
     This function iterates through a predefined list of employer IDs, fetches vacancies for each employer using
