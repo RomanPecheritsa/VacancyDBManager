@@ -1,30 +1,7 @@
 import psycopg2
 from psycopg2 import sql
-from dotenv import load_dotenv
-import os
-import logging
-from typing import List
-
-logging.basicConfig(filename='database_errors.log', level=logging.ERROR,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
-load_dotenv()
-
-DATABASE_CONFIG = {
-    'dbname': os.getenv('DATABASE_NAME'),
-    'user': os.getenv('DATABASE_USER'),
-    'password': os.getenv('DATABASE_PASSWORD'),
-    'host': os.getenv('DATABASE_HOST'),
-    'port': os.getenv('DATABASE_PORT')
-}
-
-MASTER_DATABASE_CONFIG = {
-    'dbname': 'postgres',
-    'user': os.getenv('DATABASE_USER'),
-    'password': os.getenv('DATABASE_PASSWORD'),
-    'host': os.getenv('DATABASE_HOST'),
-    'port': os.getenv('DATABASE_PORT')
-}
+from config import DATABASE_CONFIG, MASTER_DATABASE_CONFIG, logger
+from typing import List, Dict, Optional, Any
 
 CREATE_TABLES_QUERIES = [
     """
@@ -49,15 +26,14 @@ CREATE_TABLES_QUERIES = [
 ]
 
 
-def create_database(dbname: str):
+def create_database(dbname: str) -> None:
     """
     Connects to the PostgreSQL server and creates a new database, dropping it first if it exists.
     Args:
         dbname (str): The name of the database to create.
+    Returns:
+        None
     """
-    conn = psycopg2.connect(**MASTER_DATABASE_CONFIG)
-    conn.autocommit = True
-    cursor = conn.cursor()
     conn = psycopg2.connect(**MASTER_DATABASE_CONFIG)
     conn.autocommit = True
     cursor = conn.cursor()
@@ -71,15 +47,17 @@ def create_database(dbname: str):
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
         print(f"База данных '{dbname}' успешно создана")
     except Exception as e:
-        logging.error(f"Ошибка при создании базы данных: {e}")
+        logger.error(f"Ошибка при создании базы данных: {e}")
     finally:
         cursor.close()
         conn.close()
 
 
-def create_tables():
+def create_tables() -> None:
     """
-    Connects to the PostgreSQL database and creates the employers and vacancies tables.
+    Connects to the PostgreSQL database and creates the employers and vacancies tables if they do not exist.
+    Returns:
+        None
     """
     conn = psycopg2.connect(**DATABASE_CONFIG)
     cursor = conn.cursor()
@@ -90,18 +68,21 @@ def create_tables():
         conn.commit()
         print("Таблицы успешно созданы")
     except Exception as e:
-        logging.error(f"Ошибка при создании таблиц: {e}")
+        logger.error(f"Ошибка при создании таблиц: {e}")
         conn.rollback()
     finally:
         cursor.close()
         conn.close()
 
 
-def insert_employers(employers: List[dict]):
+def insert_employers(employers: List[Dict[str, Optional[str]]]) -> None:
     """
     Inserts employers into the database.
     Args:
-        employers (List[dict]): A list of employers to insert.
+        employers (List[Dict[str, Optional[str]]]): A list of dictionaries where each dictionary contains
+                                                   'employer_id', 'employer_name', and 'url' for an employer.
+    Returns:
+        None
     """
     conn = psycopg2.connect(**DATABASE_CONFIG)
     cursor = conn.cursor()
@@ -109,24 +90,29 @@ def insert_employers(employers: List[dict]):
     try:
         for emp in employers:
             cursor.execute(
-                sql.SQL("INSERT INTO employers (employer_id, employer_name, url) VALUES (%s, %s, %s) ON CONFLICT (employer_id) DO NOTHING;"),
+                sql.SQL("INSERT INTO employers (employer_id, employer_name, url) "
+                        "VALUES (%s, %s, %s) ON CONFLICT (employer_id) DO NOTHING;"),
                 (emp['employer_id'], emp['employer_name'], emp['url'])
             )
         conn.commit()
         print("Данные о работодателях успешно вставлены")
     except Exception as e:
-        logging.error(f"Ошибка при вставке данных о работодателях: {e}")
+        logger.error(f"Ошибка при вставке данных о работодателях: {e}")
         conn.rollback()
     finally:
         cursor.close()
         conn.close()
 
 
-def insert_vacancies(vacancies: List[dict]):
+def insert_vacancies(vacancies: List[Dict[str, Optional[Any]]]) -> None:
     """
     Inserts vacancies into the database.
     Args:
-        vacancies (List[dict]): A list of vacancies to insert.
+        vacancies (List[Dict[str, Optional[Any]]]): A list of dictionaries where each dictionary contains
+                                                   'vacancy_id', 'employer_id', 'name', 'description',
+                                                   'salary', and 'url' for a vacancy.
+    Returns:
+        None
     """
     conn = psycopg2.connect(**DATABASE_CONFIG)
     cursor = conn.cursor()
@@ -135,14 +121,15 @@ def insert_vacancies(vacancies: List[dict]):
         for vac in vacancies:
             cursor.execute(
                 sql.SQL(
-                    "INSERT INTO vacancies (vacancy_id, employer_id, name, description, salary, url) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (vacancy_id) DO NOTHING;"),
+                    "INSERT INTO vacancies (vacancy_id, employer_id, name, description, salary, url) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (vacancy_id) DO NOTHING;"),
                 (vac['vacancy_id'], vac['employer_id'], vac['name'], vac.get('description'), vac.get('salary'),
                  vac['url'])
             )
         conn.commit()
         print("Данные о вакансиях успешно вставлены")
     except Exception as e:
-        logging.error(f"Ошибка при вставке данных о вакансиях: {e}")
+        logger.error(f"Ошибка при вставке данных о вакансиях: {e}")
         conn.rollback()
     finally:
         cursor.close()
