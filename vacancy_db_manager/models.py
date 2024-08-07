@@ -1,14 +1,34 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class Employer(BaseModel):
     """
-    Represents an employer with basic details such as ID, name, and the number of open vacancies.
+    Model representing an employer.
     Attributes:
-        id (str): The unique identifier for the employer.
-        name (str): The name of the employer.
-        open_vacancies (int): The number of open vacancies the employer currently has.
+        employer_id (str): The unique identifier of the employer.
+        employer_name (str): The name of the employer.
+        url (str): The URL link to the employer's profile or webpage.
     """
-    id: str
+    employer_id: str
+    employer_name: str
+    url: str
+
+
+class Vacancy(BaseModel):
+    """
+    Model representing a vacancy.
+    Attributes:
+        vacancy_id (str): The unique identifier of the vacancy.
+        employer_id (str): The unique identifier of the employer who posted the vacancy.
+        name (str): The name or title of the vacancy.
+        description (Optional[str]): The description or requirements of the vacancy. Defaults to None.
+        salary (Optional[int]): The offered salary for the vacancy. Defaults to None.
+        url (str): The URL link to the vacancy's detailed webpage.
+    """
+    vacancy_id: str
+    employer_id: str
     name: str
-    open_vacancies: int
+    description: Optional[str] = None
+    salary: Optional[int] = None
+    url: str
