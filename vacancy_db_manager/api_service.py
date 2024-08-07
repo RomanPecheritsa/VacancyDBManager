@@ -38,19 +38,19 @@ def get_employers() -> List[Employer]:
     return employers_data
 
 
-def get_vacancies(id: str) -> List[Vacancy]:
+def get_vacancies(company_id: str) -> List[Vacancy]:
     """
     Fetches vacancy details for a specific employer ID.
     This function makes a GET request to fetch vacancies for a given employer ID, extracts specific fields
     from each vacancy using a JMESPath query, and creates instances of the Vacancy model. These instances
     are collected into a list and returned.
     Args:
-        id (str): The ID of the employer whose vacancies are to be fetched.
+        company_id (str): The ID of the employer whose vacancies are to be fetched.
     Returns:
         List[Vacancy]: A list of Vacancy objects containing details about each vacancy.
     """
     vacancies_data = []
-    url = f'{BASE_URL_VACANCIES}?employer_id={id}&per_page=50&professional_role=96'
+    url = f'{BASE_URL_VACANCIES}?employer_id={company_id}&per_page=50&professional_role=96'
     response = requests.get(url=url)
     if response.status_code == 200:
         vacancies = response.json()['items']
