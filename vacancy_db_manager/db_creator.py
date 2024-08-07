@@ -2,6 +2,11 @@ import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 import os
+import logging
+from typing import List
+
+logging.basicConfig(filename='database_errors.log', level=logging.ERROR,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
 
@@ -24,17 +29,16 @@ MASTER_DATABASE_CONFIG = {
 CREATE_TABLES_QUERIES = [
     """
     CREATE TABLE IF NOT EXISTS employers (
-        id SERIAL PRIMARY KEY,
-        employer_id INTEGER NOT NULL UNIQUE,
-        employer_name VARCHAR(100) NOT NULL,
+        employer_id INTEGER PRIMARY KEY,
+        employer_name VARCHAR(250) NOT NULL,
         url TEXT NOT NULL
     );
     """,
     """
     CREATE TABLE IF NOT EXISTS vacancies (
         id SERIAL PRIMARY KEY,
-        vacancy_id INTEGER NOT NULL,
-        employer_id INTEGER NOT NULL UNIQUE,
+        vacancy_id INTEGER NOT NULL UNIQUE,
+        employer_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         salary INTEGER,
@@ -45,26 +49,29 @@ CREATE_TABLES_QUERIES = [
 ]
 
 
-def create_database_if_not_exists(dbname: str):
+def create_database(dbname: str):
     """
-    Connects to the PostgreSQL server and creates the database if it does not exist.
+    Connects to the PostgreSQL server and creates a new database, dropping it first if it exists.
     Args:
         dbname (str): The name of the database to create.
     """
     conn = psycopg2.connect(**MASTER_DATABASE_CONFIG)
     conn.autocommit = True
     cursor = conn.cursor()
+    conn = psycopg2.connect(**MASTER_DATABASE_CONFIG)
+    conn.autocommit = True
+    cursor = conn.cursor()
 
     try:
-        cursor.execute(sql.SQL("SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s;"), [dbname])
-        exists = cursor.fetchone()
-        if not exists:
-            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
-            print(f"База данных'{dbname}' успешно создана")
-        else:
-            print(f"База данных '{dbname}' уже существует")
+        # Drop the database if it exists
+        cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(dbname)))
+        print(f"База данных '{dbname}' удалена")
+
+        # Create a new database
+        cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
+        print(f"База данных '{dbname}' успешно создана")
     except Exception as e:
-        print(f"Ошибка при создании базы данных: {e}")
+        logging.error(f"Ошибка при создании базы данных: {e}")
     finally:
         cursor.close()
         conn.close()
@@ -83,7 +90,59 @@ def create_tables():
         conn.commit()
         print("Таблицы успешно созданы")
     except Exception as e:
-        print(f"Ошибка при создании таблиц {e}")
+        logging.error(f"Ошибка при создании таблиц: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def insert_employers(employers: List[dict]):
+    """
+    Inserts employers into the database.
+    Args:
+        employers (List[dict]): A list of employers to insert.
+    """
+    conn = psycopg2.connect(**DATABASE_CONFIG)
+    cursor = conn.cursor()
+
+    try:
+        for emp in employers:
+            cursor.execute(
+                sql.SQL("INSERT INTO employers (employer_id, employer_name, url) VALUES (%s, %s, %s) ON CONFLICT (employer_id) DO NOTHING;"),
+                (emp['employer_id'], emp['employer_name'], emp['url'])
+            )
+        conn.commit()
+        print("Данные о работодателях успешно вставлены")
+    except Exception as e:
+        logging.error(f"Ошибка при вставке данных о работодателях: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def insert_vacancies(vacancies: List[dict]):
+    """
+    Inserts vacancies into the database.
+    Args:
+        vacancies (List[dict]): A list of vacancies to insert.
+    """
+    conn = psycopg2.connect(**DATABASE_CONFIG)
+    cursor = conn.cursor()
+
+    try:
+        for vac in vacancies:
+            cursor.execute(
+                sql.SQL(
+                    "INSERT INTO vacancies (vacancy_id, employer_id, name, description, salary, url) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (vacancy_id) DO NOTHING;"),
+                (vac['vacancy_id'], vac['employer_id'], vac['name'], vac.get('description'), vac.get('salary'),
+                 vac['url'])
+            )
+        conn.commit()
+        print("Данные о вакансиях успешно вставлены")
+    except Exception as e:
+        logging.error(f"Ошибка при вставке данных о вакансиях: {e}")
         conn.rollback()
     finally:
         cursor.close()
