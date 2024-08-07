@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "vacancydbmanager"
 version = "0.1.0"
-description = ""
+description = "the project is designed to obtain data about companies and vacancies from the website hh.ru , designing tables in a PostgreSQL database and loading the resulting data into the created tables. The project uses Python, the psycopg2 library for working with PostgreSQL, and the requests library for interacting with the API hh.ru ."
 authors = ["pecheritsa <pecheritsa.roman@gmail.com>"]
 readme = "README.md"
 
@@ -9,15 +9,10 @@ readme = "README.md"
 python = "^3.12"
 requests = "^2.32.3"
 psycopg2 = "^2.9.9"
-requests-mock = "^1.12.1"
 jmespath = "^1.0.1"
 python-dotenv = "^1.0.1"
 prettytable = "^3.10.2"
 
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
-pytest-cov = "^5.0.0"
 
 [build-system]
 requires = ["poetry-core"]
