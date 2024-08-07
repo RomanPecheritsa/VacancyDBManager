@@ -1,21 +1,21 @@
 import requests
 import jmespath
-from typing import List
-
+from typing import List, Dict, Any
 
 BASE_URL_EMPLOYERS = "https://api.hh.ru/employers"
 BASE_URL_VACANCIES = "https://api.hh.ru/vacancies"
 EMPLOYERS_ID = [1429999, 1035394, 3961360, 10772647, 84585, 5600787, 2180, 12550, 3529, 9498120]
 
 
-def get_employers() -> List[dict]:
+def get_employers() -> List[Dict[str, Any]]:
     """
-    Fetches employer details from a list of employer IDs.
-    This function iterates through a predefined list of employer IDs, makes a GET request to fetch details
-    for each employer, and extracts specific fields using a JMESPath query. The extracted data is then used
-    to create instances of the Employer model which are collected into a list and returned.
+    Fetches details for a list of predefined employers.
+    This function iterates through a predefined list of employer IDs, makes GET requests to fetch details
+    for each employer, and extracts specific fields using a JMESPath query. The extracted data is collected
+    into a list of dictionaries and returned.
     Returns:
-        List[Employer]: A list of Employer objects containing details about each employer.
+        List[Dict[str, Any]]: A list of dictionaries containing details about each employer. Each dictionary
+                              includes 'employer_id', 'employer_name', and 'url'.
     """
     employers_data = []
     for company_id in EMPLOYERS_ID:
@@ -34,22 +34,24 @@ def get_employers() -> List[dict]:
     return employers_data
 
 
-def get_vacancies(company_id: int) -> List[dict]:
+def get_vacancies(company_id: int) -> List[Dict[str, Any]]:
     """
-    Fetches vacancy details for a specific employer ID.
-    This function makes a GET request to fetch vacancies for a given employer ID, extracts specific fields
-    from each vacancy using a JMESPath query, and creates instances of the Vacancy model. These instances
-    are collected into a list and returned.
+    Fetches vacancy details for a specific employer.
+
+    This function makes a GET request to fetch vacancies for a given employer ID. It extracts specific fields
+    from each vacancy using a JMESPath query, calculates the salary if 'from' and 'to' are present, and returns
+    a list of dictionaries containing details about each vacancy.
     Args:
         company_id (int): The ID of the employer whose vacancies are to be fetched.
     Returns:
-        List[Vacancy]: A list of Vacancy objects containing details about each vacancy.
+        List[Dict[str, Any]]: A list of dictionaries containing details about each vacancy. Each dictionary
+                              includes 'vacancy_id', 'employer_id', 'name', 'description', 'salary', and 'url'.
     """
     vacancies_data = []
     url = f'{BASE_URL_VACANCIES}?employer_id={company_id}&per_page=100&only_with_salary=true'
     response = requests.get(url=url)
     if response.status_code == 200:
-        vacancies = response.json()['items']
+        vacancies = response.json().get('items', [])
         for vac in vacancies:
             salary_from = vac.get('salary', {}).get('from')
             salary_to = vac.get('salary', {}).get('to')
@@ -71,13 +73,14 @@ def get_vacancies(company_id: int) -> List[dict]:
     return vacancies_data
 
 
-def get_all_vacancies() -> List[dict]:
+def get_all_vacancies() -> List[Dict[str, Any]]:
     """
     Fetches all vacancies for a predefined list of employer IDs.
     This function iterates through a predefined list of employer IDs, fetches vacancies for each employer using
-    the get_vacancies function, and aggregates all vacancies into a single list which is then returned.
+    the `get_vacancies` function, and aggregates all vacancies into a single list.
     Returns:
-        List[Vacancy]: A list of all Vacancy objects from all employers.
+        List[Dict[str, Any]]: A list of all vacancies from all employers. Each dictionary includes 'vacancy_id',
+                              'employer_id', 'name', 'description', 'salary', and 'url'.
     """
     vacancies_data = []
     for company_id in EMPLOYERS_ID:
