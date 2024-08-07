@@ -93,9 +93,9 @@ def insert_employers(employers: List[Dict[str, Optional[str]]]) -> None:
                 (emp['employer_id'], emp['employer_name'], emp['url'])
             )
         conn.commit()
-        print("Данные о работодателях успешно вставлены")
+        print("Данные о работодателях успешно заполнены")
     except Exception as e:
-        logger.error(f"Ошибка при вставке данных о работодателях: {e}")
+        logger.error(f"Ошибка при заполнении данных о работодателях: {e}")
         conn.rollback()
     finally:
         cursor.close()
@@ -125,9 +125,9 @@ def insert_vacancies(vacancies: List[Dict[str, Optional[Any]]]) -> None:
                  vac['url'])
             )
         conn.commit()
-        print("Данные о вакансиях успешно вставлены")
+        print("Данные о вакансиях успешно заполнены")
     except Exception as e:
-        logger.error(f"Ошибка при вставке данных о вакансиях: {e}")
+        logger.error(f"Ошибка при заполнении данных о вакансиях: {e}")
         conn.rollback()
     finally:
         cursor.close()
